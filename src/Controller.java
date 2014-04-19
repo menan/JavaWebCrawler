@@ -6,7 +6,7 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class Controller {
-		
+		static CrawlController controller;
         public static void main(String[] args) throws Exception {
     			int numberOfCrawlers = 10;
         		
@@ -23,17 +23,17 @@ public class Controller {
 
         		config.setPolitenessDelay(1000);
         		
-        		config.setMaxDepthOfCrawling(2);
+        		config.setMaxDepthOfCrawling(20);
+//
+//        		config.setMaxPagesToFetch(300);
 
-        		config.setMaxPagesToFetch(30);
-
-        		config.setIncludeBinaryContentInCrawling(true); // this to allow it to crawl through pdf files and other files
+        		config.setIncludeBinaryContentInCrawling(false); // this to allow it to crawl through pdf files and other files
 
         		
         		/*
         		 * Connection timeout in milliseconds
         		 */
-        		config.setConnectionTimeout(30000); // 1 Minute
+        		config.setConnectionTimeout(30000000); // 1 Minute
 
         		/*
         		 * This config parameter can be used to set your crawl to be resumable
@@ -42,7 +42,7 @@ public class Controller {
         		 * want to start a fresh crawl, you need to delete the contents of
         		 * rootFolder manually.
         		 */
-        		config.setResumableCrawling(false);
+        		config.setResumableCrawling(true);
 
         		config.setMaxDownloadSize(10485760); // 10 Mb (1 Mb = 1048576)
 
@@ -53,7 +53,7 @@ public class Controller {
                 PageFetcher pageFetcher = new PageFetcher(config);
                 RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
                 RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
-                CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
+                controller = new CrawlController(config, pageFetcher, robotstxtServer);
 
                 /*
                  * For each crawl, you need to add some seed urls. These are the first
@@ -72,7 +72,12 @@ public class Controller {
                 controller.start(MyWebCrawler.class, numberOfCrawlers);
                 
                 controller.waitUntilFinish();
+                
                 System.out.println("Finished Crawling!");
 
+        }
+        
+        public static void stop(){
+        	controller.shutdown();
         }
 }

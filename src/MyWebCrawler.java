@@ -24,7 +24,7 @@ import org.jsoup.select.Elements;
 
 public class MyWebCrawler extends WebCrawler {
 		public static String HOST = "localhost";
-		public static String DB = "artists4";
+		public static String DB = "artists7";
 
         private final static Pattern FILTERS = Pattern.compile(".*(\\.(css|js|bmp|gif|jpe?g" 
                                                           + "|png|tiff?|mid|mp2|mp3|mp4"
@@ -34,6 +34,19 @@ public class MyWebCrawler extends WebCrawler {
     	private DB db;
     	private DBCollection coll;
     	private static DirectedGraph<URL, DefaultEdge> g = new DefaultDirectedGraph<URL, DefaultEdge>(DefaultEdge.class);
+    	
+    	
+    	public MyWebCrawler(){
+    		System.out.println("constructor got called");
+    		try {
+				mc = new MongoClient(HOST, 27017);
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			}
+    		db = mc.getDB(DB);
+    		coll = db.getCollection("data");
+    	}
+    	
         /**
          * You should implement this function to specify whether
          * the given url should be crawled or not (based on your
@@ -69,15 +82,6 @@ public class MyWebCrawler extends WebCrawler {
         public void visit(Page page) {          
                 String url = page.getWebURL().getURL();
                 System.out.println("Crawling " + url);
-
-        		try {
-					mc = new MongoClient(HOST, 27017);
-				} catch (UnknownHostException e) {
-					e.printStackTrace();
-				}
-        		db = mc.getDB(DB);
-        		coll = db.getCollection("data");
-        		
         		
                 if (page.getParseData() instanceof HtmlParseData) {
                         HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
@@ -154,7 +158,13 @@ public class MyWebCrawler extends WebCrawler {
                     		System.out.println("Bio: " + bio.text());
                     		System.out.println("Image: " + imgageURL);
 
-        	        		coll.save(doc);
+                    		try{
+            	        		coll.save(doc);
+                    		}
+                    		catch(Exception e){
+                    			System.out.println("Error saving to database, so shutting down the server");
+                    			Controller.stop();
+                    		}
                     		
                     		System.out.println("=============================");
                 		}
